@@ -108,8 +108,6 @@ Quatro experimentos, cada um variando um fator enquanto os demais ficam fixos: *
 
 Em todas as configurações também são medidas invocações quentes (contêiner já em execução), que servem de referência. Os níveis de pacote de E2 serão definidos no piloto, depois de inspecionar o tamanho dos pacotes reais.
 
-> Pendência técnica: confirmar se o SeBS local permite configurar o limite de memória diretamente ou se será feito pelo Docker.
-
 ---
 
 ## 4. Workloads (cargas de trabalho)
