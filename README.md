@@ -61,6 +61,8 @@ flowchart LR
 - A função usa armazenamento local, também em contêineres: **Minio** (imagens da A2) e **ScyllaDB** (banco NoSQL do carrinho da A1).
 - O SeBS, em modo local, empacota a função e inicia seu contêiner.
 - O SeBS traz experimentos de cold start prontos, mas a função que força o cold start (`enforce_cold_start`) **não está implementada** no modo local. Por isso o orquestrador remove e recria o contêiner antes de cada medição a frio.
+- O modo local do SeBS não configura limite de memória (há um comentário `FIXME: configure memory` em `sebs/local/local.py`) e fixa a rede em `bridge`. Os experimentos E1 e E3 dependem de um patch pequeno nessa função, guardado em `configs/`.
+- O SeBS cria o contêiner como `privileged` e com `seccomp` liberado (necessário para acessar contadores de desempenho). Isso vale para todas as configurações, mas afasta o ambiente de uma plataforma serverless real.
 
 ---
 
@@ -107,6 +109,8 @@ Quatro experimentos, cada um variando um fator enquanto os demais ficam fixos: *
 | E4 | Estado do cache do sistema | Cache quente, cache descartado; A1 e A2; Python e Node.js | 256 MB, bridge | 8 |
 
 Em todas as configurações também são medidas invocações quentes (contêiner já em execução), que servem de referência. Os níveis de pacote de E2 serão definidos no piloto, depois de inspecionar o tamanho dos pacotes reais.
+
+> Achado: o SeBS local não aplica limite de memória nem permite trocar o modo de rede. Para E1 e E3, o orquestrador usa uma versão do SeBS com um patch em `sebs/local/local.py` (parâmetros `mem_limit` e `network_mode` ao criar o contêiner). O limite de memória do Docker não aumenta a CPU disponível, ao contrário do Lambda, então o efeito esperado de E1 é menor do que na nuvem.
 
 ---
 
@@ -174,12 +178,24 @@ Cada medição a frio parte de um contêiner novo criado a partir de uma imagem 
 2. **Piloto:** 5 cold starts por configuração, para validar o pipeline, estimar a variância e conferir que o contêiner anterior é de fato removido.
 3. **Sorteio:** embaralhar a ordem das configurações da rodada e intercalar medições de configurações diferentes, para que o horário não se confunda com o efeito dos fatores.
 4. **Estado inicial (cold):** remover o contêiner anterior; no E4 com cache descartado, executar `drop_caches` logo antes.
-5. **Medição a frio:** registrar t0, criar o contêiner (`sebs local start`), esperar a função responder, enviar a requisição, registrar t1 e coletar as medidas internas.
+5. **Medição a frio:** registrar t0, criar o contêiner, esperar a função responder, enviar a requisição, registrar t1 e coletar as medidas internas. O `sebs local start` também prepara a entrada e verifica o pacote; se o teste inicial mostrar que isso entra no tempo medido, o contêiner será criado direto pelo Docker, com a mesma imagem e os mesmos parâmetros do SeBS.
 6. **Medição quente:** com o contêiner já em execução, enviar 50 requisições em sequência para obter a linha de base.
 7. **Intervalo:** remover o contêiner e esperar alguns segundos antes da próxima medição.
 8. **Registro:** gravar cada amostra em CSV bruto, sem sobrescrever, com configuração, rodada, índice e carimbo de tempo.
 9. **Descarte:** amostras com erro, ou em que o contêiner não era realmente novo, são marcadas como falhas e repetidas; o total de descartes é reportado.
 10. **Análise:** estatísticas descritivas, testes não paramétricos (Mann–Whitney e Kruskal–Wallis), intervalos de confiança por bootstrap e gráficos (boxplots e distribuições acumuladas).
+
+---
+
+## Limitações e ameaças à validade
+
+- **Plataforma local:** os resultados valem para contêineres Docker neste notebook, não para um provedor de nuvem.
+- **Contêiner privilegiado:** o SeBS usa `privileged` e `seccomp` liberado em todas as configurações, o que afasta o ambiente de uma plataforma serverless real.
+- **Memória sem CPU:** o limite de memória do Docker não aumenta a CPU disponível, então o efeito de E1 pode ser pequeno.
+- **Patch no SeBS:** E1 e E3 usam uma alteração local de `local.py`; o commit base e o patch ficam registrados.
+- **Notebook:** a frequência da CPU pode variar com a temperatura, e 8 GB de RAM deixam pouca folga. Mitigação: tomada, governador `performance` e registro de temperatura, frequência e swap em cada rodada.
+- **Cache do sistema:** fora do E4, as medições usam cache quente; o E4 mede a diferença.
+- **O que o tempo inclui:** o tempo medido pode incluir trabalho além da criação do contêiner, dependendo de como o orquestrador for implementado (ver passo 5 do procedimento).
 
 ---
 
@@ -189,7 +205,7 @@ Cada medição a frio parte de um contêiner novo criado a partir de uma imagem 
 - As aplicações do SeBS (CRUD API e Thumbnailer) são aceitas como cargas realmente usadas em serverless?
 - 26 configurações e 90 cold starts por configuração são um tamanho adequado?
 - A definição de cold start (contêiner novo, com a imagem já no disco) é suficiente, ou deve incluir também o download da imagem?
-- Pendência técnica: confirmar se o SeBS local permite configurar o limite de memória diretamente.
+- O SeBS local não configura memória nem rede (FIXME no código). Aplicar um patch pequeno ao SeBS para os experimentos E1 e E3 é aceitável?
 
 ---
 
@@ -201,7 +217,7 @@ Cada medição a frio parte de um contêiner novo criado a partir de uma imagem 
 ├── docs/                  # registro do ambiente (ambiente.md)
 ├── orquestrador/          # script que cria o contêiner, mede e grava os CSVs
 ├── benchmarks/            # cópia ou submódulo das aplicações do SeBS usadas (130.crud-api, 210.thumbnailer)
-├── configs/               # configuração do SeBS local e dos experimentos E1 a E4
+├── configs/               # configuração do SeBS local, patch do local.py e dos experimentos E1 a E4
 ├── resultados/            # CSVs brutos (nunca sobrescritos)
 ├── analise/               # notebooks ou scripts de estatística e gráficos
 └── latex/                 # texto do projeto (Introdução, Fundamentação, Metodologia)
