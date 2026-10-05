@@ -371,8 +371,6 @@ As conclusões distinguirão diferenças observadas, associações entre métric
 | `analise/` | Scripts ou notebooks de estatística e gráficos |
 | `latex/` | Introdução, Fundamentação Teórica e Metodologia Experimental |
 
-Esses caminhos descrevem a organização proposta; o README não pressupõe que os scripts já estejam implementados.
-
 ## Referências
 
 O planejamento das aplicações e dos fatores utiliza os materiais fornecidos. A documentação técnica abaixo complementa a descrição dos mecanismos e das ferramentas.
