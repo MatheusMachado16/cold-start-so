@@ -61,7 +61,7 @@ O piloto verificará com `docker inspect` os limites realmente aplicados, a rede
 | CPU | AMD Ryzen 5 5500U, 6 núcleos e 12 threads |
 | Memória RAM | 8 GB |
 | Armazenamento | SSD NVMe de 256 GB |
-| Sistema operacional | Ubuntu 24.04.5 LTS, conforme informado no planejamento; confirmar no equipamento |
+| Sistema operacional | Ubuntu 24.04.5 LTS |
 | Virtualização | Docker no Linux instalado diretamente no hardware |
 
 | Componente | Finalidade |
