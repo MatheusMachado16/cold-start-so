@@ -52,7 +52,45 @@ Segue a tabela com cada coluna e uma explicação.
 | Host | `host_*` (swap) | Uso de swap no host antes da amostra. |
 | Host | `host_*` (tomada) | Dado da tomada (provavelmente consumo/potência medido por tomada inteligente). |
 | Host | `host_*` (governador) | Governador de frequência da CPU (por exemplo, `performance` ou `powersave`). |
+| Identificação | `ordem` | Posição da amostra na ordem de execução (provavelmente a ordem aleatorizada dentro da rodada). |
+| Identificação | `seed` | Semente usada para a aleatorização (ordem das execuções) ou para a geração da carga. |
+| Identificação | `tag` | Rótulo livre para marcar a execução, lote ou variante. |
+| Identificação | `container_id` | ID do contêiner criado para a amostra. |
+| Identificação | `porta` | Porta de rede em que o contêiner foi exposto. |
+| Identificação | `backend` | Backend de execução dos contêineres (por exemplo, o runtime ou orquestrador usado). |
+| Fatores | `mem_bytes` | Memória solicitada em bytes (equivalente a `mem_mib` convertido). |
+| Tempos | `t0_wall_ns` | Instante inicial da amostra em relógio de parede, em nanossegundos; referência para os demais tempos. |
+| Tempos | `gap_ready_req_ms` | Intervalo entre o contêiner ficar pronto (`t_ready_ms`) e o envio da primeira requisição. |
+| Tempos | `srv_import_ms` | Tempo, medido pelo servidor, para importar módulos/dependências na inicialização. |
+| Tempos | `sondagens` | Número de sondagens (probes) feitas até detectar que o serviço estava pronto. |
+| Tempos | `intervalo_sondagem_ms` | Intervalo entre sondagens de prontidão. |
+| Tempos | `http_status` | Código HTTP da resposta da requisição. |
+| Eventos | `ev_create_ms` | Instante do evento de criação do contêiner, segundo o log de eventos do engine. |
+| Eventos | `ev_start_ms` | Instante do evento de início. |
+| Eventos | `ev_die_ms` | Instante do evento de término do contêiner. |
+| Eventos | `ev_oom_ms` | Instante do evento de OOM, se ocorreu (vazio caso contrário). |
+| Cache | `cache_prep_s` | Tempo, em segundos, gasto preparando o nível de cache pedido antes da amostra. |
+| cgroup | `cpu_usec` | CPU consumida pelo cgroup, em microssegundos. |
+| cgroup | `mem_atual_bytes` | Memória em uso no cgroup no momento da leitura. |
+| cgroup | `pgfault` | Total de falhas de página (menores e maiores). |
+| cgroup | `pgfault_minor` | Falhas de página menores (não exigem leitura em disco). |
+| cgroup | `io_wbytes` | Bytes escritos em disco pelo cgroup. |
+| cgroup | `io_rios` | Número de operações de leitura de I/O. |
+| cgroup | `io_wios` | Número de operações de escrita de I/O. |
+| Validação | `detalhe` | Detalhe adicional sobre a validação ou o motivo (texto livre, mensagem de erro etc.). |
+
+**As `host_*` reais (substituem as linhas genéricas que eu tinha colocado)**
+
+| `host_temp_c` | Temperatura do host, em °C, antes da amostra. |
+| `host_freq_khz` | Frequência da CPU do host, em kHz. |
+| `host_mem_disponivel_kb` | Memória disponível no host, em kB. |
+| `host_swap_usado_kb` | Swap em uso no host, em kB. |
+| `host_na_tomada` | Indica se o host estava ligado na tomada (e não na bateria); provavelmente um booleano. Eu tinha interpretado como consumo, o que estava errado. |
+| `host_governador` | Governador de frequência da CPU (`performance`, `powersave` etc.). |
 
 **Regra geral:** métrica indisponível fica como célula vazia, nunca 0, para não distorcer médias e comparações.
 
 Resultados e figuras: `../analise/saida/`.
+
+
+
