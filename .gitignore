@@ -1,5 +1,6 @@
 # Python
 __pycache__/
+venv/
 *.pyc
 
 # Pacotes das aplicações, gerados por scripts/construir_pacote.py (reproduzíveis)
@@ -13,3 +14,6 @@ resultados/rastros/*
 .vscode/
 .idea/
 .DS_Store
+
+# Excel
+~$*.xlsx
