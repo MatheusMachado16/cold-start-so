@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cold start em contêineres Docker: rodada 1</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+:root{--bg:#F4F6F9;--surface:#FFFFFF;--ink:#14202E;--muted:#556272;--line:#D9E0E8;--node:#1B9A43;--py:#3A5FD6;--f1:#8190A2;--f2:#D49A12;--f3:#E26B30;--f4:#7656C2;--hot:#C4262E;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E151E;--surface:#16202B;--ink:#E7ECF2;--muted:#9AA7B6;--line:#2A3643;--node:#41D06F;--py:#8AA3F7;--f1:#8E9DAF;--f2:#E6B13A;--f3:#F08A55;--f4:#A28BE6;--hot:#FF6B72}}
+:root[data-theme="dark"]{--bg:#0E151E;--surface:#16202B;--ink:#E7ECF2;--muted:#9AA7B6;--line:#2A3643;--node:#41D06F;--py:#8AA3F7;--f1:#8E9DAF;--f2:#E6B13A;--f3:#F08A55;--f4:#A28BE6;--hot:#FF6B72}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1040px;margin:0 auto;padding:40px 20px 72px}
+h1,h2,.big{font-family:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;letter-spacing:-.01em}
+h1{font-size:clamp(2rem,5.4vw,3.4rem);line-height:1.05;margin:0 0 16px;max-width:18ch;font-weight:700}
+h2{font-size:1.5rem;line-height:1.2;margin:56px 0 8px;font-weight:700}
+p{margin:0 0 12px;max-width:68ch}.lead{font-size:1.125rem;color:var(--muted);max-width:60ch}
+.stats{display:flex;flex-wrap:wrap;gap:8px 36px;margin:24px 0 0;padding:0}
+.stats div{display:flex;flex-direction:column}.stats dt{order:2;color:var(--muted);font-size:.875rem}.stats dd{order:1;margin:0;font:700 1.75rem/1.1 "Bricolage Grotesque",system-ui,sans-serif}
+.hero{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px 20px 12px;margin-top:32px}
+.hero h2{margin:0 0 4px;font-size:1.125rem}.hero p{color:var(--muted);font-size:.9375rem}
+svg{display:block;width:100%;height:auto}
+svg text{fill:var(--ink);font:12px "IBM Plex Sans",system-ui,sans-serif}svg .m{fill:var(--muted)}svg .w{fill:#fff;font-weight:500}
+svg .g{stroke:var(--line);stroke-width:1}
+.findings{display:grid;grid-template-columns:repeat(2,1fr);gap:28px 40px;margin-top:24px;padding:0;list-style:none}
+.findings strong{display:block;font:700 1.125rem/1.3 "Bricolage Grotesque",system-ui,sans-serif;margin-bottom:4px}
+.findings span{color:var(--muted);font-size:.9375rem}
+.panels{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-top:20px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 16px 8px}
+.panel h3{font:700 1rem/1.3 "Bricolage Grotesque",system-ui,sans-serif;margin:0 0 2px}.panel p{color:var(--muted);font-size:.875rem;margin-bottom:6px}
+.key{display:flex;gap:18px;color:var(--muted);font-size:.875rem;margin:12px 0 0}.key i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.tw{overflow-x:auto;margin-top:16px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.9375rem}
+th,td{text-align:right;padding:9px 12px;border-bottom:1px solid var(--line)}th:first-child,td:first-child{text-align:left}
+th{font-weight:500;color:var(--muted);font-size:.875rem}tr.d td{background:color-mix(in srgb,var(--f3) 8%,transparent)}
+.note{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.875rem}
+@media (max-width:760px){.findings,.panels{grid-template-columns:1fr}main{padding-top:28px}}
+</style>
+</head>
+<body>
+<main>
+<h1>Um cold start leva cerca de 750 ms. Uma invocação quente, 3 ms.</h1>
+<p class="lead">Resultados da primeira rodada do experimento com duas aplicações do SeBS, em Python e Node.js, executadas em contêineres Docker recriados a cada medição.</p>
+<dl class="stats" id="stats"></dl>
+
+<section class="hero">
+<h2>Onde o tempo vai</h2>
+<p>Mediana de cada fase do cold start na aplicação A1 (crud-api), com cache aquecido e rede bridge. A marca vermelha é a latência quente.</p>
+<div id="hero"></div>
+</section>
+
+<h2>O que a rodada mostrou</h2>
+<ul class="findings">
+<li><strong>Descartar o page cache soma de 302 a 349 ms.</strong><span>É um aumento de 42% a 47%, junto de 75 a 118 falhas de página maiores e de 39 a 117 MiB lidos do disco.</span></li>
+<li><strong>A rede host economiza cerca de 75 ms.</strong><span>Toda a economia está na fase de início do contêiner; as outras fases não mudam.</span></li>
+<li><strong>Quem vence depende da aplicação.</strong><span>O Node.js é de 27 a 77 ms mais rápido em A1; o Python é de 39 a 86 ms mais rápido em A2.</span></li>
+<li><strong>Memória e tamanho do pacote não mudaram o resultado.</strong><span>O pico de memória foi de 36 MiB, abaixo de todos os limites testados.</span></li>
+</ul>
+
+<h2>Cold start por configuração</h2>
+<p>Cada ponto é a mediana de 30 cold starts; a barra é o intervalo de confiança de 95% (bootstrap). Todos os painéis usam a mesma escala, de 600 a 1.150 ms.</p>
+<div class="key"><span><i style="background:var(--node)"></i>Node.js</span><span><i style="background:var(--py)"></i>Python</span></div>
+<div class="panels" id="panels"></div>
+
+<h2>O que o sistema operacional registrou</h2>
+<p>Métricas do cgroup no experimento de cache (mediana por configuração). Com o cache descartado, o total de falhas de página quase não muda, mas elas passam a exigir leitura do disco.</p>
+<div class="tw"><table id="so"></table></div>
+
+<p class="note">Rodada 1 de 3 planejadas: 780 cold starts (30 por configuração) e 1.300 invocações quentes. Comparações por Mann-Whitney com correção de Holm por experimento. As relações são associações, não causas. Chamadas de sistema e arquivos acessados (strace e perf) ainda não foram analisados, e o descarte de cache afeta o sistema inteiro, inclusive os serviços auxiliares.</p>
+</main>
+<script>
+const D={"cfg": {"E1-js-1024": [753.0, 743.1, 758.2], "E1-js-128": [742.3, 737.1, 747.1], "E1-js-256": [740.4, 737.6, 747.8], "E1-js-512": [738.7, 733.5, 746.0], "E1-py-1024": [779.7, 774.7, 781.2], "E1-py-128": [782.6, 779.5, 784.6], "E1-py-256": [780.7, 776.1, 784.3], "E1-py-512": [778.8, 774.0, 783.3], "E2-js-ampliado": [748.7, 744.4, 752.3], "E2-js-minimo": [748.7, 742.8, 756.0], "E2-js-padrao": [748.5, 744.7, 755.4], "E2-py-ampliado": [706.2, 703.9, 710.7], "E2-py-minimo": [704.9, 701.4, 710.3], "E2-py-padrao": [704.9, 702.6, 707.1], "E3-js-bridge": [744.4, 737.9, 754.5], "E3-js-host": [657.4, 650.6, 664.8], "E3-py-bridge": [776.6, 774.5, 781.3], "E3-py-host": [703.6, 698.3, 711.5], "E4-a1-js-aque": [738.8, 731.0, 746.6], "E4-a1-js-desc": [1045.6, 1040.4, 1052.8], "E4-a1-py-aque": [780.4, 776.9, 784.6], "E4-a1-py-desc": [1122.9, 1117.4, 1127.0], "E4-a2-js-aque": [746.4, 741.6, 747.7], "E4-a2-js-desc": [1095.3, 1092.0, 1100.4], "E4-a2-py-aque": [707.0, 704.3, 713.2], "E4-a2-py-desc": [1009.4, 1004.5, 1015.6]}, "fases": {"E1-js-1024": {"criacao": 99.3, "inicio": 211.0, "pront": 407.6, "req": 21.3, "total": 753.0}, "E1-js-128": {"criacao": 101.7, "inicio": 212.8, "pront": 400.1, "req": 21.5, "total": 742.3}, "E1-js-256": {"criacao": 99.2, "inicio": 211.9, "pront": 399.9, "req": 21.9, "total": 740.4}, "E1-js-512": {"criacao": 101.1, "inicio": 213.8, "pront": 396.9, "req": 21.6, "total": 738.7}, "E1-py-1024": {"criacao": 99.4, "inicio": 213.0, "pront": 153.9, "req": 310.3, "total": 779.7}, "E1-py-128": {"criacao": 101.4, "inicio": 214.1, "pront": 155.3, "req": 311.8, "total": 782.6}, "E1-py-256": {"criacao": 101.0, "inicio": 214.8, "pront": 154.1, "req": 310.5, "total": 780.7}, "E1-py-512": {"criacao": 102.0, "inicio": 211.4, "pront": 154.0, "req": 308.6, "total": 778.8}, "E2-js-ampliado": {"criacao": 98.5, "inicio": 212.4, "pront": 325.8, "req": 111.1, "total": 748.7}, "E2-js-minimo": {"criacao": 101.3, "inicio": 214.8, "pront": 317.2, "req": 112.6, "total": 748.7}, "E2-js-padrao": {"criacao": 100.5, "inicio": 214.2, "pront": 321.8, "req": 110.4, "total": 748.5}, "E2-py-ampliado": {"criacao": 102.5, "inicio": 213.2, "pront": 155.0, "req": 235.0, "total": 706.2}, "E2-py-minimo": {"criacao": 99.3, "inicio": 211.8, "pront": 154.2, "req": 236.2, "total": 704.9}, "E2-py-padrao": {"criacao": 100.1, "inicio": 211.8, "pront": 155.7, "req": 235.5, "total": 704.9}, "E3-js-bridge": {"criacao": 99.6, "inicio": 212.4, "pront": 395.7, "req": 35.6, "total": 744.4}, "E3-js-host": {"criacao": 98.1, "inicio": 136.5, "pront": 392.3, "req": 21.6, "total": 657.4}, "E3-py-bridge": {"criacao": 98.8, "inicio": 212.9, "pront": 155.2, "req": 310.7, "total": 776.6}, "E3-py-host": {"criacao": 99.0, "inicio": 138.6, "pront": 153.6, "req": 310.3, "total": 703.6}, "E4-a1-js-aque": {"criacao": 100.3, "inicio": 213.6, "pront": 398.4, "req": 21.5, "total": 738.8}, "E4-a1-js-desc": {"criacao": 132.8, "inicio": 258.4, "pront": 627.2, "req": 21.4, "total": 1045.6}, "E4-a1-py-aque": {"criacao": 102.6, "inicio": 212.1, "pront": 155.4, "req": 310.7, "total": 780.4}, "E4-a1-py-desc": {"criacao": 133.6, "inicio": 255.7, "pront": 279.4, "req": 454.5, "total": 1122.9}, "E4-a2-js-aque": {"criacao": 97.2, "inicio": 213.0, "pront": 325.0, "req": 108.8, "total": 746.4}, "E4-a2-js-desc": {"criacao": 135.5, "inicio": 257.4, "pront": 601.6, "req": 97.9, "total": 1095.3}, "E4-a2-py-aque": {"criacao": 102.4, "inicio": 212.9, "pront": 154.5, "req": 237.4, "total": 707.0}, "E4-a2-py-desc": {"criacao": 131.6, "inicio": 256.2, "pront": 281.4, "req": 341.3, "total": 1009.4}}, "so": {"E4-a1-js-aque": [0, 0.0, 474, 24.7], "E4-a1-js-desc": [75, 89.6, 579, 114.7], "E4-a1-py-aque": [0, 0.0, 482, 35.2], "E4-a1-py-desc": [78, 39.4, 574, 73.2], "E4-a2-js-aque": [1, 0.0, 473, 39.6], "E4-a2-js-desc": [118, 117.0, 582, 155.9], "E4-a2-py-aque": [0, 0.0, 400, 32.9], "E4-a2-py-desc": [92, 42.3, 469, 74.5]}, "quente": {"E1-js-1024": 3.2, "E1-js-128": 3.3, "E1-js-256": 3.5, "E1-js-512": 3.5, "E1-py-1024": 2.8, "E1-py-128": 3.0, "E1-py-256": 2.9, "E1-py-512": 2.8, "E2-js-ampliado": 83.0, "E2-js-minimo": 85.0, "E2-js-padrao": 86.7, "E2-py-ampliado": 37.2, "E2-py-minimo": 37.2, "E2-py-padrao": 37.7, "E3-js-bridge": 3.3, "E3-js-host": 3.1, "E3-py-bridge": 2.8, "E3-py-host": 2.6, "E4-a1-js-aque": 3.4, "E4-a1-js-desc": 3.5, "E4-a1-py-aque": 2.9, "E4-a1-py-desc": 3.0, "E4-a2-js-aque": 82.8, "E4-a2-js-desc": 81.5, "E4-a2-py-aque": 37.6, "E4-a2-py-desc": 37.9}, "n_frio": 780, "n_quente": 1300};
+const f0=n=>Math.round(n).toLocaleString('pt-BR');
+const c=id=>D.cfg[id];
+
+document.getElementById('stats').innerHTML=[[D.n_frio,'cold starts medidos'],[26,'configurações'],[f0(D.n_quente),'invocações quentes']]
+ .map(([v,l])=>`<div><dd>${typeof v==='number'?f0(v):v}</dd><dt>${l}</dt></div>`).join('');
+
+// Hero: fases do cold start
+(function(){
+ const rows=[['Node.js','E4-a1-js-aque'],['Python','E4-a1-py-aque']],
+  ph=[['Criação','criacao','--f1'],['Início','inicio','--f2'],['Prontidão','pront','--f3'],['1ª requisição','req','--f4']],
+  x0=104,k=0.9,W=880;
+ let s=`<svg viewBox="0 0 ${W} 230" role="img" aria-label="Fases do cold start em A1 com Node.js e Python">`;
+ [0,200,400,600,800].forEach(t=>{s+=`<line class="g" x1="${x0+t*k}" x2="${x0+t*k}" y1="48" y2="158"/><text class="m" x="${x0+t*k}" y="178" text-anchor="middle">${t} ms</text>`});
+ rows.forEach(([nm,id],i)=>{const y=60+i*50,F=D.fases[id];let x=x0;
+  s+=`<text x="${x0-12}" y="${y+24}" text-anchor="end">${nm}</text>`;
+  ph.forEach(([lb,key,col])=>{const w=F[key]*k;s+=`<rect x="${x}" y="${y}" width="${w}" height="34" fill="var(${col})"/>`;
+   if(w>56)s+=`<text class="w" x="${x+w/2}" y="${y+21}" text-anchor="middle">${f0(F[key])}</text>`;x+=w});
+  s+=`<text x="${x+8}" y="${y+22}">${f0(F.total)} ms</text>`});
+ s+=`<line x1="${x0+3*k}" x2="${x0+3*k}" y1="40" y2="158" stroke="var(--hot)" stroke-width="2"/><text x="${x0+12}" y="34" style="fill:var(--hot)">invocação quente: 3 ms</text>`;
+ ph.forEach(([lb,,col],i)=>{const x=x0+i*150;s+=`<rect x="${x}" y="200" width="12" height="12" fill="var(${col})"/><text x="${x+18}" y="211">${lb}</text>`});
+ document.getElementById('hero').innerHTML=s+'</svg>';
+})();
+
+// Painéis de pontos com IC95%
+function dots(title,sub,rows){
+ const W=440,L=128,R=44,T=24,rh=28,min=600,max=1150,H=T+rows.length*rh+8,x=v=>L+(v-min)/(max-min)*(W-L-R);
+ let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${title}">`;
+ [600,700,800,900,1000,1100].forEach(t=>{s+=`<line class="g" x1="${x(t)}" x2="${x(t)}" y1="${T-6}" y2="${H-8}"/><text class="m" x="${x(t)}" y="12" text-anchor="middle" style="font-size:10.5px">${f0(t)}</text>`});
+ rows.forEach(([lb,id,rt],i)=>{const y=T+i*rh+rh/2,[m,lo,hi]=c(id),col=rt==='js'?'var(--node)':'var(--py)';
+  s+=`<text x="${L-10}" y="${y+4}" text-anchor="end" style="font-size:11px">${lb}</text>
+  <line x1="${x(lo)}" x2="${x(hi)}" y1="${y}" y2="${y}" stroke="${col}" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="${x(m)}" cy="${y}" r="5.5" fill="${col}" stroke="var(--surface)" stroke-width="1.5"/>
+  <text x="${x(hi)+9}" y="${y+4}" style="font-size:11px">${f0(m)}</text>`});
+ return `<div class="panel"><h3>${title}</h3><p>${sub}</p>${s}</svg></div>`;
+}
+const R=(a,b)=>[[`${a} 128 MiB`,`E1-${b}-128`,b],[`${a} 256 MiB`,`E1-${b}-256`,b],[`${a} 512 MiB`,`E1-${b}-512`,b],[`${a} 1024 MiB`,`E1-${b}-1024`,b]];
+const P=(a,b)=>[['mínimo','minimo'],['padrão','padrao'],['ampliado','ampliado']].map(([l,k])=>[`${a} ${l}`,`E2-${b}-${k}`,b]);
+document.getElementById('panels').innerHTML=
+ dots('Estado do page cache','Descartar o cache é o maior efeito do estudo.',[
+  ['A1 Node.js aquecido','E4-a1-js-aque','js'],['A1 Node.js descartado','E4-a1-js-desc','js'],['A1 Python aquecido','E4-a1-py-aque','py'],['A1 Python descartado','E4-a1-py-desc','py'],
+  ['A2 Node.js aquecido','E4-a2-js-aque','js'],['A2 Node.js descartado','E4-a2-js-desc','js'],['A2 Python aquecido','E4-a2-py-aque','py'],['A2 Python descartado','E4-a2-py-desc','py']])+
+ dots('Modo de rede','O modo host evita cerca de 75 ms na fase de início.',[
+  ['Node.js bridge','E3-js-bridge','js'],['Node.js host','E3-js-host','js'],['Python bridge','E3-py-bridge','py'],['Python host','E3-py-host','py']])+
+ dots('Limite de memória','Sem diferença entre 128 e 1024 MiB na aplicação A1.',[...R('Node.js','js'),...R('Python','py')])+
+ dots('Tamanho do pacote','Sem diferença com cache aquecido na aplicação A2.',[...P('Node.js','js'),...P('Python','py')]);
+
+// Tabela de métricas do SO
+const L={'E4-a1-js-aque':'A1 Node.js aquecido','E4-a1-js-desc':'A1 Node.js descartado','E4-a1-py-aque':'A1 Python aquecido','E4-a1-py-desc':'A1 Python descartado','E4-a2-js-aque':'A2 Node.js aquecido','E4-a2-js-desc':'A2 Node.js descartado','E4-a2-py-aque':'A2 Python aquecido','E4-a2-py-desc':'A2 Python descartado'};
+document.getElementById('so').innerHTML='<tr><th>Configuração</th><th>Falhas maiores</th><th>Leitura (MiB)</th><th>CPU (ms)</th><th>Pico de memória (MiB)</th></tr>'+
+ Object.keys(L).map(id=>{const v=D.so[id];return `<tr class="${id.endsWith('desc')?'d':''}"><td>${L[id]}</td><td>${f0(v[0])}</td><td>${v[1].toLocaleString('pt-BR')}</td><td>${f0(v[2])}</td><td>${v[3].toLocaleString('pt-BR')}</td></tr>`}).join('');
+</script>
+</body>
+</html>
