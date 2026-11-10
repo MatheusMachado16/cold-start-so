@@ -1,20 +1,18 @@
-# coletado em 2026-11-01T11:05:00-03:00
+# coletado em 2026-11-09T20:58:59-03:00
 ## SO
-"Bluefin (Version: 44.20261029.1)"
-7.2.7-200.fc44.x86_64
+"Bluefin (Version: 44.20261103)"
+7.2.11-200.fc44.x86_64
 ## CPU
 CPU(s):                                  12
 Model name:                              AMD Ryzen 5 5500U with Radeon Graphics
 Thread(s) per core:                      2
 Core(s) per socket:                      6
-CPU(s) scaling MHz:                      63%
+CPU(s) scaling MHz:                      59%
 ## Memória
                total        used        free      shared  buff/cache   available
-Mem:           6.6Gi       1.7Gi       1.1Gi       4.2Mi       4.1Gi       4.8Gi
-Swap:          6.6Gi          0B       6.6Gi
+Mem:           6.6Gi       2.2Gi       2.7Gi       4.3Mi       2.0Gi       4.3Gi
+Swap:             0B          0B          0B
 swap:
-NAME       TYPE      SIZE USED PRIO
-/dev/zram0 partition 6.6G   0B  100
 ## Governador/driver
 performance
 amd-pstate-epp
@@ -27,10 +25,10 @@ v20.20.2
 strace: não instalado
 perf: não instalado
 ## Imagens
-spcleth/serverless-benchmarks   run.local.nodejs.20     sha256:a12b108a27b6c89e76dc07b77837424fbe311b63501b2796b4203f867353328b   a12b108a27b6   2 weeks ago     667MB
-spcleth/serverless-benchmarks   run.local.python.3.11   sha256:3224d477dc17b7e8e4ede1f984c2f23ae87b8041bd64bf348042ec9d319efaa1   3224d477dc17   2 weeks ago     300MB
-cgr.dev/chainguard/minio        latest                  <none>                                                                    709099319add   2 weeks ago     235MB
-cs-minio                        fixed                   sha256:709099319add48dfb44aa596a7070d3ddd8dd04d7ae881765719aec29df9e510   709099319add   2 weeks ago     235MB
+spcleth/serverless-benchmarks   run.local.nodejs.20     sha256:a12b108a27b6c89e76dc07b77837424fbe311b63501b2796b4203f867353328b   a12b108a27b6   3 weeks ago     667MB
+spcleth/serverless-benchmarks   run.local.python.3.11   sha256:3224d477dc17b7e8e4ede1f984c2f23ae87b8041bd64bf348042ec9d319efaa1   3224d477dc17   3 weeks ago     300MB
+cgr.dev/chainguard/minio        latest                  <none>                                                                    709099319add   3 weeks ago     235MB
+cs-minio                        fixed                   sha256:709099319add48dfb44aa596a7070d3ddd8dd04d7ae881765719aec29df9e510   709099319add   3 weeks ago     235MB
 scylladb/scylla                 6.2                     sha256:a9d904089abe9a4f8b5b893ebb5b5bf8b5a1bd0dc6658921cf05f89d3712289c   a9d904089abe   21 months ago   945MB
 ## perf_event_paranoid
 2

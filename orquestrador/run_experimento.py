@@ -39,7 +39,7 @@ COLUNAS = [
     "tipo", "container_id", "t0_wall_ns", "porta",
     "t_created_ms", "t_started_ms", "t_ready_ms", "gap_ready_req_ms", "t_req_cold_ms", "t_cold_total_ms",
     "lat_req_ms", "srv_import_ms", "sondagens", "intervalo_sondagem_ms", "http_status",
-    "ev_create_ms", "ev_start_ms", "ev_die_ms", "ev_oom_ms",
+    "ev_create_ms", "ev_start_ms",
     "cache_prep_s", "cache_nivel",
     # observação (cgroup/proc)
     "cpu_usec", "mem_atual_bytes", "mem_pico_bytes", "pgfault", "pgmajfault", "pgfault_minor",

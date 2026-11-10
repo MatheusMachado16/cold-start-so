@@ -126,7 +126,7 @@ def preparar_cache(backend, cfg, env_extra, evento, validador, amb, opts):
     finally:
         if h:
             backend.remover(h)
-    return {"cache_prep_s": time.perf_counter() - t, "cache_nivel": None}
+    return {"cache_prep_s": time.perf_counter() - t, "cache_nivel": 0}
 
 
 def medir(backend, cfg, evento, validador, env_extra, amb, opts, n_quente, id_base, dir_eventos=None):

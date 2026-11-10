@@ -3,7 +3,7 @@
     {
       "route": "GET /cart",
       "body": {
-        "cart": "59083d70822843d5afbfe190b3977d5c"
+        "cart": "9c21f8bd974343bc911aeced0a939c4a"
       }
     }
   ],
