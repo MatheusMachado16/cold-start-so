@@ -1,4 +1,4 @@
-# coletado em 2026-11-09T20:58:59-03:00
+# coletado em 2026-11-10T20:56:49-03:00
 ## SO
 "Bluefin (Version: 44.20261103)"
 7.2.11-200.fc44.x86_64
@@ -7,10 +7,10 @@ CPU(s):                                  12
 Model name:                              AMD Ryzen 5 5500U with Radeon Graphics
 Thread(s) per core:                      2
 Core(s) per socket:                      6
-CPU(s) scaling MHz:                      59%
+CPU(s) scaling MHz:                      68%
 ## Memória
                total        used        free      shared  buff/cache   available
-Mem:           6.6Gi       2.2Gi       2.7Gi       4.3Mi       2.0Gi       4.3Gi
+Mem:           6.6Gi       2.2Gi       3.8Gi       4.5Mi       936Mi       4.4Gi
 Swap:             0B          0B          0B
 swap:
 ## Governador/driver
@@ -29,6 +29,6 @@ spcleth/serverless-benchmarks   run.local.nodejs.20     sha256:a12b108a27b6c89e7
 spcleth/serverless-benchmarks   run.local.python.3.11   sha256:3224d477dc17b7e8e4ede1f984c2f23ae87b8041bd64bf348042ec9d319efaa1   3224d477dc17   3 weeks ago     300MB
 cgr.dev/chainguard/minio        latest                  <none>                                                                    709099319add   3 weeks ago     235MB
 cs-minio                        fixed                   sha256:709099319add48dfb44aa596a7070d3ddd8dd04d7ae881765719aec29df9e510   709099319add   3 weeks ago     235MB
-scylladb/scylla                 6.2                     sha256:a9d904089abe9a4f8b5b893ebb5b5bf8b5a1bd0dc6658921cf05f89d3712289c   a9d904089abe   21 months ago   945MB
+scylladb/scylla                 6.2                     sha256:a9d904089abe9a4f8b5b893ebb5b5bf8b5a1bd0dc6658921cf05f89d3712289c   a9d904089abe   22 months ago   945MB
 ## perf_event_paranoid
 2
